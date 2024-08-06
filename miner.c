@@ -11,8 +11,8 @@ static struct termios previous_config, new_config;
 
 void reset_terminal() {
   printf("\e[m");  // reset color changes
-  fflush(stdout);
   printf("\e[?25h");  // show cursor 
+  fflush(stdout);
   tcsetattr(STDIN_FILENO, TCSANOW, &previous_config);
 }
 
@@ -28,6 +28,13 @@ void config_terminal() {
 
   printf("\e[?25l");  // hide cursor
   atexit(reset_terminal);
+}
+
+void signal_handler(int signum) {
+
+  reset_terminal();
+  signal(signum, SIG_DFL);  // reset signal to previous state
+  raise(signum);
 }
 
 int read_key(char* buffer, int k) {
@@ -68,6 +75,8 @@ void print_key(int key) {
 
 int main() {
   config_terminal();
+
+  signal(SIGINT, signal_handler);
 
   struct timespec req = {};
   struct timespec rem = {};
