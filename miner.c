@@ -8,6 +8,7 @@
 #include "unistd.h"
 
 static struct termios previous_config, new_config;
+static int exit_loop;
 
 void reset_terminal() {
   printf("\e[m");  // reset color changes
@@ -30,11 +31,8 @@ void config_terminal() {
   atexit(reset_terminal);
 }
 
-void signal_handler(int signum) {
-
-  reset_terminal();
-  signal(signum, SIG_DFL);  // reset signal to previous state
-  raise(signum);
+void signal_handler() { //int signum) {
+  exit_loop = 1;
 }
 
 int read_key(char* buffer, int k) {
@@ -82,7 +80,7 @@ int main() {
   struct timespec rem = {};
 
   // game loop
-  while (1) {
+  while (!exit_loop) {
     int key = read_input();
     print_key(key);
     
